@@ -7,101 +7,126 @@ package auth
 import (
 	context "context"
 	reflect "reflect"
+	time "time"
 
 	gomock "github.com/golang/mock/gomock"
 )
 
-// MockUserRepository is a mock of UserRepository interface.
-type MockUserRepository struct {
+// MockCipher is a mock of Cipher interface.
+type MockCipher struct {
 	ctrl     *gomock.Controller
-	recorder *MockUserRepositoryMockRecorder
+	recorder *MockCipherMockRecorder
 }
 
-// MockUserRepositoryMockRecorder is the mock recorder for MockUserRepository.
-type MockUserRepositoryMockRecorder struct {
-	mock *MockUserRepository
+// MockCipherMockRecorder is the mock recorder for MockCipher.
+type MockCipherMockRecorder struct {
+	mock *MockCipher
 }
 
-// NewMockUserRepository creates a new mock instance.
-func NewMockUserRepository(ctrl *gomock.Controller) *MockUserRepository {
-	mock := &MockUserRepository{ctrl: ctrl}
-	mock.recorder = &MockUserRepositoryMockRecorder{mock}
+// NewMockCipher creates a new mock instance.
+func NewMockCipher(ctrl *gomock.Controller) *MockCipher {
+	mock := &MockCipher{ctrl: ctrl}
+	mock.recorder = &MockCipherMockRecorder{mock}
 	return mock
 }
 
 // EXPECT returns an object that allows the caller to indicate expected use.
-func (m *MockUserRepository) EXPECT() *MockUserRepositoryMockRecorder {
+func (m *MockCipher) EXPECT() *MockCipherMockRecorder {
 	return m.recorder
 }
 
-// ApplyUser mocks base method.
-func (m *MockUserRepository) ApplyUser(ctx context.Context, user User) error {
+// Check mocks base method.
+func (m *MockCipher) Check(ctx context.Context, token, text, cipher string) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ApplyUser", ctx, user)
+	ret := m.ctrl.Call(m, "Check", ctx, token, text, cipher)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
-// ApplyUser indicates an expected call of ApplyUser.
-func (mr *MockUserRepositoryMockRecorder) ApplyUser(ctx, user interface{}) *gomock.Call {
+// Check indicates an expected call of Check.
+func (mr *MockCipherMockRecorder) Check(ctx, token, text, cipher interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ApplyUser", reflect.TypeOf((*MockUserRepository)(nil).ApplyUser), ctx, user)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Check", reflect.TypeOf((*MockCipher)(nil).Check), ctx, token, text, cipher)
 }
 
-// DeleteCookie mocks base method.
-func (m *MockUserRepository) DeleteCookie(ctx context.Context, username string) error {
+// Encrypt mocks base method.
+func (m *MockCipher) Encrypt(ctx context.Context, token, text string) (string, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "DeleteCookie", ctx, username)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// DeleteCookie indicates an expected call of DeleteCookie.
-func (mr *MockUserRepositoryMockRecorder) DeleteCookie(ctx, username interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteCookie", reflect.TypeOf((*MockUserRepository)(nil).DeleteCookie), ctx, username)
-}
-
-// GetUser mocks base method.
-func (m *MockUserRepository) GetUser(ctx context.Context) (User, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetUser", ctx)
-	ret0, _ := ret[0].(User)
+	ret := m.ctrl.Call(m, "Encrypt", ctx, token, text)
+	ret0, _ := ret[0].(string)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// GetUser indicates an expected call of GetUser.
-func (mr *MockUserRepositoryMockRecorder) GetUser(ctx interface{}) *gomock.Call {
+// Encrypt indicates an expected call of Encrypt.
+func (mr *MockCipherMockRecorder) Encrypt(ctx, token, text interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetUser", reflect.TypeOf((*MockUserRepository)(nil).GetUser), ctx)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Encrypt", reflect.TypeOf((*MockCipher)(nil).Encrypt), ctx, token, text)
 }
 
-// GetUserCookie mocks base method.
-func (m *MockUserRepository) GetUserCookie(ctx context.Context, cookie string) (UserCookie, error) {
+// GenerateKey mocks base method.
+func (m *MockCipher) GenerateKey(ctx context.Context) (string, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetUserCookie", ctx, cookie)
-	ret0, _ := ret[0].(UserCookie)
+	ret := m.ctrl.Call(m, "GenerateKey", ctx)
+	ret0, _ := ret[0].(string)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// GetUserCookie indicates an expected call of GetUserCookie.
-func (mr *MockUserRepositoryMockRecorder) GetUserCookie(ctx, cookie interface{}) *gomock.Call {
+// GenerateKey indicates an expected call of GenerateKey.
+func (mr *MockCipherMockRecorder) GenerateKey(ctx interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetUserCookie", reflect.TypeOf((*MockUserRepository)(nil).GetUserCookie), ctx, cookie)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GenerateKey", reflect.TypeOf((*MockCipher)(nil).GenerateKey), ctx)
 }
 
-// SetCookie mocks base method.
-func (m *MockUserRepository) SetCookie(ctx context.Context, cookie UserCookie) error {
+// MockTokenOperator is a mock of TokenOperator interface.
+type MockTokenOperator struct {
+	ctrl     *gomock.Controller
+	recorder *MockTokenOperatorMockRecorder
+}
+
+// MockTokenOperatorMockRecorder is the mock recorder for MockTokenOperator.
+type MockTokenOperatorMockRecorder struct {
+	mock *MockTokenOperator
+}
+
+// NewMockTokenOperator creates a new mock instance.
+func NewMockTokenOperator(ctrl *gomock.Controller) *MockTokenOperator {
+	mock := &MockTokenOperator{ctrl: ctrl}
+	mock.recorder = &MockTokenOperatorMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use.
+func (m *MockTokenOperator) EXPECT() *MockTokenOperatorMockRecorder {
+	return m.recorder
+}
+
+// Check mocks base method.
+func (m *MockTokenOperator) Check(ctx context.Context, key, token string) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "SetCookie", ctx, cookie)
+	ret := m.ctrl.Call(m, "Check", ctx, key, token)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
-// SetCookie indicates an expected call of SetCookie.
-func (mr *MockUserRepositoryMockRecorder) SetCookie(ctx, cookie interface{}) *gomock.Call {
+// Check indicates an expected call of Check.
+func (mr *MockTokenOperatorMockRecorder) Check(ctx, key, token interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SetCookie", reflect.TypeOf((*MockUserRepository)(nil).SetCookie), ctx, cookie)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Check", reflect.TypeOf((*MockTokenOperator)(nil).Check), ctx, key, token)
+}
+
+// Generate mocks base method.
+func (m *MockTokenOperator) Generate(ctx context.Context, username, key string, expireAt time.Time) (string, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Generate", ctx, username, key, expireAt)
+	ret0, _ := ret[0].(string)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// Generate indicates an expected call of Generate.
+func (mr *MockTokenOperatorMockRecorder) Generate(ctx, username, key, expireAt interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Generate", reflect.TypeOf((*MockTokenOperator)(nil).Generate), ctx, username, key, expireAt)
 }

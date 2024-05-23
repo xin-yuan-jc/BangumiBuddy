@@ -2,119 +2,125 @@ package auth
 
 import (
 	"context"
-	"errors"
-	"net/http"
 	"time"
 
-	"github.com/google/uuid"
-
+	"github.com/MangataL/BangumiBuddy/internal/config"
+	"github.com/MangataL/BangumiBuddy/pkg/errs"
 	"github.com/MangataL/BangumiBuddy/pkg/log"
 )
 
 //go:generate mockgen -destination auth_mock.go -source $GOFILE -package $GOPACKAGE
 
-// UserRepository is the interface for user data
-type UserRepository interface {
-	GetUser(ctx context.Context) (User, error)
-	ApplyUser(ctx context.Context, user User) error
-	GetUserCookie(ctx context.Context, cookie string) (UserCookie, error)
-	SetCookie(ctx context.Context, cookie UserCookie) error
-	DeleteCookie(ctx context.Context, username string) error
+// New 生成鉴权器
+func New(dep Dependencies) Authenticator {
+	return &authenticator{
+		config:        dep.Config,
+		cipher:        dep.Cipher,
+		tokenOperator: dep.TokenOperator,
+	}
 }
 
-// UserCookie is the struct for user cookie
-type UserCookie struct {
-	Username string
-	Cookie   string
-	ExpireAt time.Time
+// Dependencies 依赖
+type Dependencies struct {
+	config.Config
+	Cipher
+	TokenOperator
 }
 
-// authenticator based on Cookie-Session Authentication
+// Cipher is the interface for token operation
+type Cipher interface {
+	GenerateKey(ctx context.Context) (string, error)
+	Encrypt(ctx context.Context, token, text string) (string, error)
+	Check(ctx context.Context, token, text, cipher string) error
+}
+
+// TokenOperator token操作器
+type TokenOperator interface {
+	Generate(ctx context.Context, username, key string, expireAt time.Time) (string, error)
+	Check(ctx context.Context, key, token string) error
+}
+
+// authenticator
 type authenticator struct {
-	userRepo UserRepository
-}
-
-func (a *authenticator) Login(ctx context.Context, username, password string) (http.Cookie, error) {
-	user, err := a.userRepo.GetUser(ctx)
-	if err != nil {
-		return http.Cookie{}, err
-	}
-	if user.Username != username || user.Password != password {
-		return http.Cookie{}, errors.New("用户名或密码错误")
-	}
-	cookie := a.newCookie()
-	if err := a.userRepo.SetCookie(ctx, UserCookie{
-		Username: username,
-		Cookie:   cookie.Value,
-		ExpireAt: cookie.Expires,
-	}); err != nil {
-		return http.Cookie{}, err
-	}
-	return cookie, nil
-}
-
-func (a *authenticator) Logout(ctx context.Context, username string) error {
-	return a.userRepo.DeleteCookie(ctx, username)
-}
-
-func (a *authenticator) UpdateUser(ctx context.Context, username, password string) error {
-	return a.userRepo.ApplyUser(ctx, User{
-		Username: username,
-		Password: password,
-	})
-}
-
-// User is the struct for user data
-type User struct {
-	Username string `json:"username"`
-	Password string `json:"password"`
+	config        config.Config
+	cipher        Cipher
+	tokenOperator TokenOperator
 }
 
 const (
-	// CookieName is the name of the cookie
-	CookieName = "bangumi_session"
+	defaultAccessTokenExpire  = time.Hour * 24
+	defaultRefreshTokenExpire = time.Hour * 24 * 7
 )
 
-func (a *authenticator) CheckCookie(r *http.Request) (http.Cookie, error) {
-	cookie, err := r.Cookie(CookieName)
+func (a *authenticator) Authorize(ctx context.Context, username, password string) (Credentials, error) {
+	token := a.getToken()
+	if err := a.validateLogin(ctx, username, password, token); err != nil {
+		return Credentials{}, err
+	}
+	credentials, err := a.generateCredentials(ctx, username, token)
 	if err != nil {
-		return http.Cookie{}, err
+		return Credentials{}, err
 	}
-	userCookie, err := a.userRepo.GetUserCookie(r.Context(), cookie.Value)
-	if err != nil {
-		return http.Cookie{}, err
-	}
-	now := time.Now()
-	if userCookie.ExpireAt.Before(now) {
-		return http.Cookie{}, errors.New("cookie过期，请重新登录")
-	}
-	if userCookie.ExpireAt.Sub(now) < 10*time.Minute {
-		newCookie := a.newCookie()
-		err = a.userRepo.SetCookie(r.Context(), UserCookie{
-			Username: userCookie.Username,
-			Cookie:   newCookie.Value,
-			ExpireAt: newCookie.Expires,
-		})
-		if err != nil {
-			log.Errorf(r.Context(), "set cookie failed %s", err)
-		}
-		return newCookie, nil
-	}
-	return http.Cookie{}, nil
+	return credentials, nil
 }
 
-func (a *authenticator) newCookie() http.Cookie {
-	return http.Cookie{
-		Name:    CookieName,
-		Value:   uuid.NewString(),
-		MaxAge:  24 * 60 * 60,
-		Expires: time.Now().Add(24 * time.Hour),
+func (a *authenticator) validateLogin(ctx context.Context, username, password, token string) error {
+	if username == "" {
+		return errs.NewUnauthorized("用户名不能为空")
 	}
+	if username != a.getUsername() {
+		return ErrUsernameOrPasswordError
+	}
+	pw := a.getPassword()
+	if err := a.cipher.Check(ctx, token, password, pw); err != nil {
+		log.Error(ctx, "检查密码错误: ", err.Error())
+		return ErrUsernameOrPasswordError
+	}
+	return nil
 }
 
-// NewAuth returns a new authenticator
-func NewAuth(userRepo UserRepository) Authenticator {
-	return &authenticator{
-		userRepo: userRepo,
+func (a *authenticator) getUsername() string {
+	username, _ := a.config.GetUsername()
+	return username
+}
+
+func (a *authenticator) getPassword() string {
+	password, _ := a.config.GetPassword()
+	return password
+}
+
+func (a *authenticator) getToken() string {
+	token, _ := a.config.GetToken()
+	return token
+}
+
+func (a *authenticator) generateCredentials(ctx context.Context, username, token string) (Credentials, error) {
+	accessToken, err := a.tokenOperator.Generate(ctx, username, token, time.Now().Add(defaultAccessTokenExpire))
+	if err != nil {
+		return Credentials{}, err
 	}
+	refreshToken, err := a.tokenOperator.Generate(ctx, username, token, time.Now().Add(defaultRefreshTokenExpire))
+	if err != nil {
+		return Credentials{}, err
+	}
+	return Credentials{
+		AccessToken:  accessToken,
+		TokenType:    "bearer",
+		RefreshToken: refreshToken,
+	}, nil
+}
+
+func (a *authenticator) ChangePassword(ctx context.Context, accessToken, newPassword string) error {
+	// TODO implement me
+	panic("implement me")
+}
+
+func (a *authenticator) CheckAccessToken(ctx context.Context, accessToken string) error {
+	// TODO implement me
+	panic("implement me")
+}
+
+func (a *authenticator) RefreshCredentials(ctx context.Context, refreshToken string) (Credentials, error) {
+	// TODO implement me
+	panic("implement me")
 }
