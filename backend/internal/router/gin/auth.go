@@ -46,7 +46,7 @@ func getBearerToken(request *http.Request) string {
 func (a *Auth) Login(c *gin.Context) {
 	if grantType := c.Request.FormValue("grant_type"); grantType != "password" {
 		c.JSON(http.StatusBadRequest, tokenError{
-			Error:            "unsupported_grant_type",
+			Error:            "unsupported_response_type",
 			ErrorDescription: "不支持的授权类型",
 		})
 	}
