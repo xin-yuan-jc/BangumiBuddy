@@ -36,32 +36,32 @@ func (m *MockCipher) EXPECT() *MockCipherMockRecorder {
 }
 
 // Check mocks base method.
-func (m *MockCipher) Check(ctx context.Context, token, text, cipher string) error {
+func (m *MockCipher) Check(ctx context.Context, key, text, cipher string) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Check", ctx, token, text, cipher)
+	ret := m.ctrl.Call(m, "Check", ctx, key, text, cipher)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // Check indicates an expected call of Check.
-func (mr *MockCipherMockRecorder) Check(ctx, token, text, cipher interface{}) *gomock.Call {
+func (mr *MockCipherMockRecorder) Check(ctx, key, text, cipher interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Check", reflect.TypeOf((*MockCipher)(nil).Check), ctx, token, text, cipher)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Check", reflect.TypeOf((*MockCipher)(nil).Check), ctx, key, text, cipher)
 }
 
 // Encrypt mocks base method.
-func (m *MockCipher) Encrypt(ctx context.Context, token, text string) (string, error) {
+func (m *MockCipher) Encrypt(ctx context.Context, key, text string) (string, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Encrypt", ctx, token, text)
+	ret := m.ctrl.Call(m, "Encrypt", ctx, key, text)
 	ret0, _ := ret[0].(string)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // Encrypt indicates an expected call of Encrypt.
-func (mr *MockCipherMockRecorder) Encrypt(ctx, token, text interface{}) *gomock.Call {
+func (mr *MockCipherMockRecorder) Encrypt(ctx, key, text interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Encrypt", reflect.TypeOf((*MockCipher)(nil).Encrypt), ctx, token, text)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Encrypt", reflect.TypeOf((*MockCipher)(nil).Encrypt), ctx, key, text)
 }
 
 // GenerateKey mocks base method.
@@ -103,30 +103,30 @@ func (m *MockTokenOperator) EXPECT() *MockTokenOperatorMockRecorder {
 }
 
 // Check mocks base method.
-func (m *MockTokenOperator) Check(ctx context.Context, key, token string) error {
+func (m *MockTokenOperator) Check(ctx context.Context, tokenType, key, token string) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Check", ctx, key, token)
+	ret := m.ctrl.Call(m, "Check", ctx, tokenType, key, token)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // Check indicates an expected call of Check.
-func (mr *MockTokenOperatorMockRecorder) Check(ctx, key, token interface{}) *gomock.Call {
+func (mr *MockTokenOperatorMockRecorder) Check(ctx, tokenType, key, token interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Check", reflect.TypeOf((*MockTokenOperator)(nil).Check), ctx, key, token)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Check", reflect.TypeOf((*MockTokenOperator)(nil).Check), ctx, tokenType, key, token)
 }
 
 // Generate mocks base method.
-func (m *MockTokenOperator) Generate(ctx context.Context, username, key string, expireAt time.Time) (string, error) {
+func (m *MockTokenOperator) Generate(ctx context.Context, tokenType, key string, expireAt time.Time) (string, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Generate", ctx, username, key, expireAt)
+	ret := m.ctrl.Call(m, "Generate", ctx, tokenType, key, expireAt)
 	ret0, _ := ret[0].(string)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // Generate indicates an expected call of Generate.
-func (mr *MockTokenOperatorMockRecorder) Generate(ctx, username, key, expireAt interface{}) *gomock.Call {
+func (mr *MockTokenOperatorMockRecorder) Generate(ctx, tokenType, key, expireAt interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Generate", reflect.TypeOf((*MockTokenOperator)(nil).Generate), ctx, username, key, expireAt)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Generate", reflect.TypeOf((*MockTokenOperator)(nil).Generate), ctx, tokenType, key, expireAt)
 }

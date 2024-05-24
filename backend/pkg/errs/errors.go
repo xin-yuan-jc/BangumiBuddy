@@ -2,6 +2,8 @@ package errs
 
 import (
 	"net/http"
+
+	"github.com/pkg/errors"
 )
 
 // Error 异常
@@ -26,4 +28,12 @@ func NewUnauthorized(message string) *Error {
 		HTTPCode: http.StatusUnauthorized,
 		Message:  message,
 	}
+}
+
+func ParseError(err error) (int, string) {
+	cause := errors.Cause(err)
+	if e := (&Error{}); errors.As(cause, &e) {
+		return e.HTTPCode, e.Error()
+	}
+	return http.StatusInternalServerError, err.Error()
 }

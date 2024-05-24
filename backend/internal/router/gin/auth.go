@@ -7,6 +7,7 @@ import (
 	"github.com/gin-gonic/gin"
 
 	"github.com/MangataL/BangumiBuddy/internal/auth"
+	"github.com/MangataL/BangumiBuddy/pkg/errs"
 )
 
 // Auth is the gin handler for authentication
@@ -22,72 +23,63 @@ func NewAuth(authenticator auth.Authenticator) *Auth {
 }
 
 const (
-	loginPath = "/login"
+	tokenPath = "/token"
 )
 
-// CheckCookie checks the cookie in the request
-func (a *Auth) CheckCookie(c *gin.Context) {
-	cookie, err := a.authenticator.CheckCookie(c.Request)
-	if strings.HasSuffix(c.Request.URL.Path, loginPath) {
-		if err == nil {
-			c.Redirect(http.StatusTemporaryRedirect, "/")
-			c.Abort()
-			return
-		}
-	} else {
-		if err != nil {
-			c.Redirect(http.StatusTemporaryRedirect, loginPath)
-			c.Abort()
-			return
-		}
-	}
-
-	c.Next()
-	if cookie.Name == "" {
+func (a *Auth) CheckToken(c *gin.Context) {
+	if strings.HasPrefix(c.Request.URL.Path, tokenPath) {
+		c.Next()
 		return
 	}
-	// refresh cookie
-	c.SetCookie(cookie.Name, cookie.Value, cookie.MaxAge, cookie.Path, cookie.Domain, cookie.Secure, cookie.HttpOnly)
+	if err := a.authenticator.CheckAccessToken(c.Request.Context(), getBearerToken(c.Request)); err != nil {
+		code, msg := errs.ParseError(err)
+		c.Data(code, "text/plain", []byte(msg))
+		return
+	}
+	c.Next()
 }
 
-type loginReq struct {
-	Username string `json:"username"`
-	Password string `json:"password"`
-}
-
-type loginResp struct {
-	Message string `json:"msg"`
+func getBearerToken(request *http.Request) string {
+	return strings.TrimPrefix(request.Header.Get("Authorization"), "Bearer ")
 }
 
 func (a *Auth) Login(c *gin.Context) {
-	var req loginReq
-	if err := c.BindJSON(&req); err != nil {
-		return
+	if grantType := c.Request.FormValue("grant_type"); grantType != "password" {
+		c.JSON(http.StatusBadRequest, tokenError{
+			Error:            "unsupported_grant_type",
+			ErrorDescription: "不支持的授权类型",
+		})
 	}
-	cookie, err := a.authenticator.Login(c.Request.Context(), req.Username, req.Password)
+	username := c.Request.FormValue("username")
+	password := c.Request.FormValue("password")
+	credentials, err := a.authenticator.Authorize(c.Request.Context(), username, password)
 	if err != nil {
-		c.JSON(http.StatusForbidden, loginResp{Message: err.Error()})
+		code, msg := errs.ParseError(err)
+		errType := convertToErrorType(code)
+		c.JSON(code, tokenError{Error: errType, ErrorDescription: msg})
 		return
 	}
-	c.SetCookie(cookie.Name, cookie.Value, cookie.MaxAge, cookie.Path, cookie.Domain, cookie.Secure, cookie.HttpOnly)
-	c.JSON(http.StatusOK, loginResp{})
+	c.JSON(http.StatusOK, gin.H{
+		"access_token":  credentials.AccessToken,
+		"token_type":    "Bearer",
+		"refresh_token": credentials.RefreshToken,
+	})
 }
 
-type logoutReq struct {
-	Username string `json:"username"`
+func convertToErrorType(code int) string {
+	switch code {
+	case http.StatusUnauthorized:
+		return "invalid_request"
+	case http.StatusForbidden:
+		return "invalid_grant"
+	default:
+		return "invalid_scope"
+	}
 }
 
-func (a *Auth) Logout(c *gin.Context) {
-	var req logoutReq
-	if err := c.BindJSON(&req); err != nil {
-		return
-	}
-	if err := a.authenticator.Logout(c.Request.Context(), req.Username); err != nil {
-		c.JSON(http.StatusInternalServerError, loginResp{Message: err.Error()})
-		return
-	}
-	c.SetCookie(auth.CookieName, "", -1, "", "", false, false)
-	c.JSON(http.StatusOK, loginResp{})
+type tokenError struct {
+	Error            string `json:"error"`
+	ErrorDescription string `json:"error_description"`
 }
 
 type updateReq struct {
@@ -100,7 +92,8 @@ func (a *Auth) UpdateUser(c *gin.Context) {
 	if err := c.BindJSON(&req); err != nil {
 		return
 	}
-	if err := a.authenticator.UpdateUser(c.Request.Context(), req.Username, req.Password); err != nil {
+	accessToken := getBearerToken(c.Request)
+	if err := a.authenticator.UpdateUser(c.Request.Context(), accessToken, req.Username, req.Password); err != nil {
 		c.JSON(http.StatusInternalServerError, loginResp{Message: err.Error()})
 		return
 	}

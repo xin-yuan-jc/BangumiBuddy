@@ -9,6 +9,13 @@ import (
 	"github.com/MangataL/BangumiBuddy/pkg/log"
 )
 
+const (
+	defaultUsername  = "admin"
+	defaultPassword  = "admin123"
+	accessTokenType  = "access"
+	refreshTokenType = "refresh"
+)
+
 //go:generate mockgen -destination auth_mock.go -source $GOFILE -package $GOPACKAGE
 
 // New 生成鉴权器
@@ -30,14 +37,14 @@ type Dependencies struct {
 // Cipher is the interface for token operation
 type Cipher interface {
 	GenerateKey(ctx context.Context) (string, error)
-	Encrypt(ctx context.Context, token, text string) (string, error)
-	Check(ctx context.Context, token, text, cipher string) error
+	Encrypt(ctx context.Context, key, text string) (string, error)
+	Check(ctx context.Context, key, text, cipher string) error
 }
 
 // TokenOperator token操作器
 type TokenOperator interface {
-	Generate(ctx context.Context, username, key string, expireAt time.Time) (string, error)
-	Check(ctx context.Context, key, token string) error
+	Generate(ctx context.Context, tokenType, key string, expireAt time.Time) (string, error)
+	Check(ctx context.Context, tokenType, key, token string) error
 }
 
 // authenticator
@@ -53,11 +60,11 @@ const (
 )
 
 func (a *authenticator) Authorize(ctx context.Context, username, password string) (Credentials, error) {
-	token := a.getToken()
+	token := a.getKey()
 	if err := a.validateLogin(ctx, username, password, token); err != nil {
 		return Credentials{}, err
 	}
-	credentials, err := a.generateCredentials(ctx, username, token)
+	credentials, err := a.generateCredentials(ctx, token)
 	if err != nil {
 		return Credentials{}, err
 	}
@@ -65,8 +72,8 @@ func (a *authenticator) Authorize(ctx context.Context, username, password string
 }
 
 func (a *authenticator) validateLogin(ctx context.Context, username, password, token string) error {
-	if username == "" {
-		return errs.NewUnauthorized("用户名不能为空")
+	if username == "" || password == "" {
+		return errs.NewUnauthorized("用户名或密码不能为空")
 	}
 	if username != a.getUsername() {
 		return ErrUsernameOrPasswordError
@@ -81,46 +88,66 @@ func (a *authenticator) validateLogin(ctx context.Context, username, password, t
 
 func (a *authenticator) getUsername() string {
 	username, _ := a.config.GetUsername()
+	if username == "" {
+		username = defaultUsername
+		_ = a.config.SetUsername(username)
+	}
 	return username
 }
 
 func (a *authenticator) getPassword() string {
 	password, _ := a.config.GetPassword()
+	if password == "" {
+		password = defaultPassword
+		_ = a.config.SetPassword(password)
+	}
 	return password
 }
 
-func (a *authenticator) getToken() string {
+func (a *authenticator) getKey() string {
 	token, _ := a.config.GetToken()
+	if token == "" {
+		token, _ = a.cipher.GenerateKey(context.Background())
+		_ = a.config.SetToken(token)
+	}
 	return token
 }
 
-func (a *authenticator) generateCredentials(ctx context.Context, username, token string) (Credentials, error) {
-	accessToken, err := a.tokenOperator.Generate(ctx, username, token, time.Now().Add(defaultAccessTokenExpire))
+func (a *authenticator) generateCredentials(ctx context.Context, token string) (Credentials, error) {
+	accessToken, err := a.tokenOperator.Generate(ctx, accessTokenType, token, time.Now().Add(defaultAccessTokenExpire))
 	if err != nil {
 		return Credentials{}, err
 	}
-	refreshToken, err := a.tokenOperator.Generate(ctx, username, token, time.Now().Add(defaultRefreshTokenExpire))
+	refreshToken, err := a.tokenOperator.Generate(ctx, refreshTokenType, token, time.Now().Add(defaultRefreshTokenExpire))
 	if err != nil {
 		return Credentials{}, err
 	}
 	return Credentials{
 		AccessToken:  accessToken,
-		TokenType:    "bearer",
 		RefreshToken: refreshToken,
 	}, nil
 }
 
-func (a *authenticator) ChangePassword(ctx context.Context, accessToken, newPassword string) error {
-	// TODO implement me
-	panic("implement me")
+func (a *authenticator) UpdateUser(ctx context.Context, accessToken, username, password string) error {
+	if err := a.checkToken(ctx, accessTokenType, accessToken); err != nil {
+		return err
+	}
+	_ = a.config.SetUsername(username)
+	_ = a.config.SetPassword(password)
+	return nil
+}
+
+func (a *authenticator) checkToken(ctx context.Context, tokenType, token string) error {
+	return a.tokenOperator.Check(ctx, tokenType, a.getKey(), token)
 }
 
 func (a *authenticator) CheckAccessToken(ctx context.Context, accessToken string) error {
-	// TODO implement me
-	panic("implement me")
+	return a.checkToken(ctx, accessTokenType, accessToken)
 }
 
 func (a *authenticator) RefreshCredentials(ctx context.Context, refreshToken string) (Credentials, error) {
-	// TODO implement me
-	panic("implement me")
+	if err := a.checkToken(ctx, refreshTokenType, refreshToken); err != nil {
+		return Credentials{}, err
+	}
+	return a.generateCredentials(ctx, a.getKey())
 }
