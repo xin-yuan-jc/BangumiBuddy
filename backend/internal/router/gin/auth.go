@@ -73,7 +73,7 @@ func convertToErrorType(code int) string {
 	case http.StatusForbidden:
 		return "invalid_grant"
 	default:
-		return "invalid_scope"
+		return "server_error"
 	}
 }
 
