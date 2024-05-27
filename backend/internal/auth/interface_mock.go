@@ -79,15 +79,15 @@ func (mr *MockAuthenticatorMockRecorder) RefreshCredentials(ctx, refreshToken in
 }
 
 // UpdateUser mocks base method.
-func (m *MockAuthenticator) UpdateUser(ctx context.Context, token, username, password string) error {
+func (m *MockAuthenticator) UpdateUser(ctx context.Context, username, password string) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "UpdateUser", ctx, token, username, password)
+	ret := m.ctrl.Call(m, "UpdateUser", ctx, username, password)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // UpdateUser indicates an expected call of UpdateUser.
-func (mr *MockAuthenticatorMockRecorder) UpdateUser(ctx, token, username, password interface{}) *gomock.Call {
+func (mr *MockAuthenticatorMockRecorder) UpdateUser(ctx, username, password interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateUser", reflect.TypeOf((*MockAuthenticator)(nil).UpdateUser), ctx, token, username, password)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateUser", reflect.TypeOf((*MockAuthenticator)(nil).UpdateUser), ctx, username, password)
 }

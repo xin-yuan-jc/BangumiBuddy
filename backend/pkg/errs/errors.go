@@ -16,9 +16,9 @@ func (e *Error) Error() string {
 	return e.Message
 }
 
-func NewForbidden(message string) *Error {
+func NewBadRequest(message string) *Error {
 	return &Error{
-		HTTPCode: http.StatusForbidden,
+		HTTPCode: http.StatusBadRequest,
 		Message:  message,
 	}
 }
@@ -27,6 +27,13 @@ func NewUnauthorized(message string) *Error {
 	return &Error{
 		HTTPCode: http.StatusUnauthorized,
 		Message:  message,
+	}
+}
+
+func NewUnauthorizedf(format string, args ...interface{}) *Error {
+	return &Error{
+		HTTPCode: http.StatusUnauthorized,
+		Message:  format,
 	}
 }
 

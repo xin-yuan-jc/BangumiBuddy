@@ -73,7 +73,7 @@ func (a *authenticator) Authorize(ctx context.Context, username, password string
 
 func (a *authenticator) validateLogin(ctx context.Context, username, password, token string) error {
 	if username == "" || password == "" {
-		return errs.NewUnauthorized("用户名或密码不能为空")
+		return errs.NewBadRequest("用户名或密码不能为空")
 	}
 	if username != a.getUsername() {
 		return ErrUsernameOrPasswordError
@@ -128,17 +128,24 @@ func (a *authenticator) generateCredentials(ctx context.Context, token string) (
 	}, nil
 }
 
-func (a *authenticator) UpdateUser(ctx context.Context, accessToken, username, password string) error {
-	if err := a.checkToken(ctx, accessTokenType, accessToken); err != nil {
+func (a *authenticator) UpdateUser(ctx context.Context, username, password string) error {
+	cipherText, err := a.cipher.Encrypt(ctx, a.getKey(), password)
+	if err != nil {
 		return err
 	}
 	_ = a.config.SetUsername(username)
-	_ = a.config.SetPassword(password)
+	_ = a.config.SetPassword(cipherText)
 	return nil
 }
 
 func (a *authenticator) checkToken(ctx context.Context, tokenType, token string) error {
-	return a.tokenOperator.Check(ctx, tokenType, a.getKey(), token)
+	if token == "" {
+		return errs.NewBadRequest("token不能为空")
+	}
+	if err := a.tokenOperator.Check(ctx, tokenType, a.getKey(), token); err != nil {
+		return errs.NewUnauthorizedf("token无效: %v", err)
+	}
+	return nil
 }
 
 func (a *authenticator) CheckAccessToken(ctx context.Context, accessToken string) error {

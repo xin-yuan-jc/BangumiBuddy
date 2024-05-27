@@ -11,7 +11,9 @@ import (
 	"gorm.io/gorm"
 
 	"github.com/MangataL/BangumiBuddy/internal/auth"
-	"github.com/MangataL/BangumiBuddy/internal/repository/sqlite"
+	"github.com/MangataL/BangumiBuddy/internal/auth/crypto/pbkdf2"
+	"github.com/MangataL/BangumiBuddy/internal/auth/token/jwt"
+	"github.com/MangataL/BangumiBuddy/internal/repository/viper"
 	ginrouter "github.com/MangataL/BangumiBuddy/internal/router/gin"
 	"github.com/MangataL/BangumiBuddy/pkg/log"
 )
@@ -20,7 +22,6 @@ func main() {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 	r := gin.Default()
-
 	// init logger
 	if os.Getenv("DEV") != "true" {
 		initLogger(ctx)
@@ -31,24 +32,56 @@ func main() {
 	r.Static("/static", "./web/static")
 	r.Static("/favicon.ico", "./web/favicon.ico")
 
-	db, err := gorm.Open(sqlitedriver.Open("data.db"), &gorm.Config{
+	_, err := gorm.Open(sqlitedriver.Open("data.db"), &gorm.Config{
 		SkipDefaultTransaction: true,
 	})
 	if err != nil {
 		log.Fatalf(ctx, "open db failed %s", err)
 	}
+	configPath := getConfigPath()
+	initConfig(ctx, configPath)
+	conf, err := viper.NewRepo(configPath)
+	if err != nil {
+		log.Fatalf(ctx, "init config failed %s", err)
+	}
+	authenticator := auth.New(auth.Dependencies{
+		Config:        conf,
+		Cipher:        pbkdf2.NewCipher(),
+		TokenOperator: jwt.NewTokenOperator(),
+	})
 
-	authRouter := ginrouter.NewAuth(auth.NewAuth(sqlite.NewUserRepo(db)))
-	apisRouter := r.Group("/apis", authRouter.CheckCookie)
-	apisRouter.POST("/login", authRouter.Login)
-	apisRouter.POST("/logout", authRouter.Logout)
-	apisRouter.POST("/user/update", authRouter.UpdateUser)
-	r.NoRoute(authRouter.CheckCookie, func(c *gin.Context) {
+	authRouter := ginrouter.NewAuth(authenticator)
+	r.POST("/apis/v1/token", authRouter.Token)
+	apisRouter := r.Group("/apis/v1", authRouter.CheckToken)
+	apisRouter.PUT("/user", authRouter.UpdateUser)
+	r.NoRoute(authRouter.CheckToken, func(c *gin.Context) {
 		c.HTML(http.StatusOK, "index.html", nil)
 	})
 	if err := r.Run("[::]:6937"); err != nil {
 		log.Fatalf(ctx, "run server failed %s", err)
 	}
+}
+
+const (
+	defaultConfigPath = "/config/config.yaml"
+)
+
+func getConfigPath() string {
+	if configPath := os.Getenv("CONFIG_FILE_PATH"); configPath != "" {
+		return configPath
+	}
+	return defaultConfigPath
+}
+
+func initConfig(ctx context.Context, path string) {
+	file, err := os.Open(path)
+	if err != nil {
+		if os.IsNotExist(err) {
+			return
+		}
+		log.Fatalf(ctx, "open config file failed %s", err)
+	}
+	_ = file.Close()
 }
 
 var logConfig = log.Config{

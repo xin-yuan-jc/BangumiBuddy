@@ -137,8 +137,8 @@ func TestAuthenticator_Authorize(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			dep, cleanup := tc.fake(t)
-			defer cleanup()
+			dep, clo := tc.fake(t)
+			defer clo()
 			a := New(dep)
 
 			got, err := a.Authorize(context.Background(), tc.args.username, tc.args.password)
@@ -166,15 +166,15 @@ func TestAuthenticator_UpdateUser(t *testing.T) {
 			name: "success",
 			fake: func(t *testing.T) (Dependencies, func()) {
 				ctrl := gomock.NewController(t)
-				mockTokenOperator := NewMockTokenOperator(ctrl)
-				mockTokenOperator.EXPECT().Check(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).AnyTimes()
 				mockConfig := config.NewMockConfig(ctrl)
 				mockConfig.EXPECT().GetToken().Return("token", nil).AnyTimes()
 				mockConfig.EXPECT().SetUsername(gomock.Any()).AnyTimes()
 				mockConfig.EXPECT().SetPassword(gomock.Any()).AnyTimes()
+				mockCipher := NewMockCipher(ctrl)
+				mockCipher.EXPECT().Encrypt(gomock.Any(), gomock.Any(), gomock.Any()).Return("cipher", nil).AnyTimes()
 				return Dependencies{
-					TokenOperator: mockTokenOperator,
-					Config:        mockConfig,
+					Config: mockConfig,
+					Cipher: mockCipher,
 				}, ctrl.Finish
 			},
 			args: args{
@@ -187,11 +187,11 @@ func TestAuthenticator_UpdateUser(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			dep, cleanup := tc.fake(t)
-			defer cleanup()
+			dep, clo := tc.fake(t)
+			defer clo()
 			a := New(dep)
 
-			err := a.UpdateUser(context.Background(), tc.args.accessToken, tc.args.username, tc.args.password)
+			err := a.UpdateUser(context.Background(), tc.args.username, tc.args.password)
 			t.Log(err)
 
 			assert.Equal(t, tc.wantErr, err != nil)
@@ -228,8 +228,8 @@ func TestAuthenticator_CheckAccessToken(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			dep, cleanup := tc.fake(t)
-			defer cleanup()
+			dep, clo := tc.fake(t)
+			defer clo()
 			a := New(dep)
 
 			err := a.CheckAccessToken(context.Background(), tc.args.accessToken)
@@ -283,8 +283,8 @@ func TestAuthenticator_RefreshCredentials(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			dep, cleanup := tc.fake(t)
-			defer cleanup()
+			dep, clo := tc.fake(t)
+			defer clo()
 			a := New(dep)
 
 			got, err := a.RefreshCredentials(context.Background(), tc.args.refreshToken)
