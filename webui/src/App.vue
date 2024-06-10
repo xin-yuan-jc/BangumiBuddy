@@ -1,20 +1,10 @@
 <template>
-  <div id="app">
-    <component :is="layout">
-      <router-view />
-    </component>
-  </div>
+  <a-app>
+    <router-view />
+  </a-app>
 </template>
 
-<script setup>
-import { computed } from "vue";
-import { useRoute } from "vue-router";
-
-const route = useRoute();
-
-const layout = computed(() => {
-  return "layout-" + (route.meta.layout || "default").toLowerCase();
-});
+<script lang="ts" setup>
 </script>
 
 <style>
@@ -24,8 +14,5 @@ const layout = computed(() => {
   list-style: none;
   text-decoration: none;
   outline: none;
-}
-
-#app {
 }
 </style>

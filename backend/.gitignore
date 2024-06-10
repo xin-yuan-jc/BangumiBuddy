@@ -1,3 +1,5 @@
 BangumiBuddy
 /web
 data.db
+config.yaml
+log.log

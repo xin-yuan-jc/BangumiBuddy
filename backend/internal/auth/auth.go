@@ -99,7 +99,7 @@ func (a *authenticator) getPassword() string {
 	password, _ := a.config.GetPassword()
 	if password == "" {
 		password = defaultPassword
-		_ = a.config.SetPassword(password)
+		_ = a.setPassword(context.Background(), password)
 	}
 	return password
 }
@@ -129,11 +129,18 @@ func (a *authenticator) generateCredentials(ctx context.Context, token string) (
 }
 
 func (a *authenticator) UpdateUser(ctx context.Context, username, password string) error {
+	if err := a.setPassword(ctx, password); err != nil {
+		return err
+	}
+	_ = a.config.SetUsername(username)
+	return nil
+}
+
+func (a *authenticator) setPassword(ctx context.Context, password string) error {
 	cipherText, err := a.cipher.Encrypt(ctx, a.getKey(), password)
 	if err != nil {
 		return err
 	}
-	_ = a.config.SetUsername(username)
 	_ = a.config.SetPassword(cipherText)
 	return nil
 }

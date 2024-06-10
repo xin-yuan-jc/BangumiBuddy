@@ -6,8 +6,8 @@ import (
 	"os"
 
 	"github.com/gin-gonic/gin"
+	sqlitedriver "github.com/glebarez/sqlite"
 	"go.uber.org/zap/zapcore"
-	sqlitedriver "gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 
 	"github.com/MangataL/BangumiBuddy/internal/auth"
@@ -77,6 +77,12 @@ func initConfig(ctx context.Context, path string) {
 	file, err := os.Open(path)
 	if err != nil {
 		if os.IsNotExist(err) {
+			configFile, err := os.Create(path)
+			if err != nil {
+				log.Fatalf(ctx, "create config file failed %s", err)
+				return
+			}
+			_ = configFile.Close()
 			return
 		}
 		log.Fatalf(ctx, "open config file failed %s", err)
@@ -95,7 +101,14 @@ var logConfig = log.Config{
 	Filename: "/app/data/log/log.log",
 }
 
+const (
+	defaultLogPath = "/app/data/log/log.log"
+)
+
 func initLogger(ctx context.Context) {
+	if logPath := os.Getenv("LOG_FILE_PATH"); logPath != "" {
+		logConfig.Filename = logPath
+	}
 	logger, err := logConfig.Build()
 	if err != nil {
 		log.Fatal(ctx, "init logger failed %s", err)

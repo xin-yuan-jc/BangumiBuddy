@@ -1,5 +1,6 @@
-<template>HomeNew</template>
+<script setup lang="ts">
+</script>
 
-<script setup></script>
-
-<style scoped></style>
+<template>
+  <h2>Home</h2>
+</template>
