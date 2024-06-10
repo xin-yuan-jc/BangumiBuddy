@@ -6,8 +6,6 @@ import (
 
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
-
-	"github.com/MangataL/BangumiBuddy/internal/config"
 )
 
 func TestAuthenticator_Authorize(t *testing.T) {
@@ -26,7 +24,7 @@ func TestAuthenticator_Authorize(t *testing.T) {
 			name: "success-normal",
 			fake: func(t *testing.T) (Dependencies, func()) {
 				ctrl := gomock.NewController(t)
-				mockConfig := config.NewMockConfig(ctrl)
+				mockConfig := NewMockConfig(ctrl)
 				mockConfig.EXPECT().GetUsername().Return("user", nil).AnyTimes()
 				mockConfig.EXPECT().GetPassword().Return("password", nil).AnyTimes()
 				mockConfig.EXPECT().GetToken().Return("token", nil).AnyTimes()
@@ -56,7 +54,7 @@ func TestAuthenticator_Authorize(t *testing.T) {
 			name: "fail-empty-username",
 			fake: func(t *testing.T) (Dependencies, func()) {
 				ctrl := gomock.NewController(t)
-				mockConfig := config.NewMockConfig(ctrl)
+				mockConfig := NewMockConfig(ctrl)
 				mockConfig.EXPECT().GetToken().Return("token", nil).AnyTimes()
 				return Dependencies{Config: mockConfig}, ctrl.Finish
 			},
@@ -67,7 +65,7 @@ func TestAuthenticator_Authorize(t *testing.T) {
 			name: "fail-username-not-match",
 			fake: func(t *testing.T) (Dependencies, func()) {
 				ctrl := gomock.NewController(t)
-				mockConfig := config.NewMockConfig(ctrl)
+				mockConfig := NewMockConfig(ctrl)
 				mockConfig.EXPECT().GetToken().Return("token", nil).AnyTimes()
 				mockConfig.EXPECT().GetUsername().Return("user", nil).AnyTimes()
 				return Dependencies{Config: mockConfig}, ctrl.Finish
@@ -82,7 +80,7 @@ func TestAuthenticator_Authorize(t *testing.T) {
 			name: "fail-password-not-match",
 			fake: func(t *testing.T) (Dependencies, func()) {
 				ctrl := gomock.NewController(t)
-				mockConfig := config.NewMockConfig(ctrl)
+				mockConfig := NewMockConfig(ctrl)
 				mockConfig.EXPECT().GetToken().Return("token", nil).AnyTimes()
 				mockConfig.EXPECT().GetUsername().Return("user", nil).AnyTimes()
 				mockConfig.EXPECT().GetPassword().Return("password", nil).AnyTimes()
@@ -103,7 +101,7 @@ func TestAuthenticator_Authorize(t *testing.T) {
 			name: "success-first-init",
 			fake: func(t *testing.T) (Dependencies, func()) {
 				ctrl := gomock.NewController(t)
-				mockConfig := config.NewMockConfig(ctrl)
+				mockConfig := NewMockConfig(ctrl)
 				mockConfig.EXPECT().GetUsername().Return("", nil).AnyTimes()
 				mockConfig.EXPECT().SetUsername(defaultUsername).AnyTimes()
 				mockConfig.EXPECT().GetPassword().Return("", nil).AnyTimes()
@@ -166,7 +164,7 @@ func TestAuthenticator_UpdateUser(t *testing.T) {
 			name: "success",
 			fake: func(t *testing.T) (Dependencies, func()) {
 				ctrl := gomock.NewController(t)
-				mockConfig := config.NewMockConfig(ctrl)
+				mockConfig := NewMockConfig(ctrl)
 				mockConfig.EXPECT().GetToken().Return("token", nil).AnyTimes()
 				mockConfig.EXPECT().SetUsername(gomock.Any()).AnyTimes()
 				mockConfig.EXPECT().SetPassword(gomock.Any()).AnyTimes()
@@ -213,7 +211,7 @@ func TestAuthenticator_CheckAccessToken(t *testing.T) {
 			name: "success",
 			fake: func(t *testing.T) (Dependencies, func()) {
 				ctrl := gomock.NewController(t)
-				mockConfig := config.NewMockConfig(ctrl)
+				mockConfig := NewMockConfig(ctrl)
 				mockConfig.EXPECT().GetToken().Return("token", nil).AnyTimes()
 				mockTokenOperator := NewMockTokenOperator(ctrl)
 				mockTokenOperator.EXPECT().Check(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).AnyTimes()
@@ -257,7 +255,7 @@ func TestAuthenticator_RefreshCredentials(t *testing.T) {
 				ctrl := gomock.NewController(t)
 				mockTokenOperator := NewMockTokenOperator(ctrl)
 				mockTokenOperator.EXPECT().Check(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).AnyTimes()
-				mockConfig := config.NewMockConfig(ctrl)
+				mockConfig := NewMockConfig(ctrl)
 				mockConfig.EXPECT().GetToken().Return("token", nil).AnyTimes()
 				mockCipher := NewMockCipher(ctrl)
 				mockCipher.EXPECT().GenerateKey(gomock.Any()).Return("token", nil).AnyTimes()

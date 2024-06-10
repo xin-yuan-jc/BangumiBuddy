@@ -4,7 +4,6 @@ import (
 	"context"
 	"time"
 
-	"github.com/MangataL/BangumiBuddy/internal/config"
 	"github.com/MangataL/BangumiBuddy/pkg/errs"
 	"github.com/MangataL/BangumiBuddy/pkg/log"
 )
@@ -29,7 +28,7 @@ func New(dep Dependencies) Authenticator {
 
 // Dependencies 依赖
 type Dependencies struct {
-	config.Config
+	Config
 	Cipher
 	TokenOperator
 }
@@ -47,9 +46,19 @@ type TokenOperator interface {
 	Check(ctx context.Context, tokenType, key, token string) error
 }
 
+// Config 配置项
+type Config interface {
+	GetUsername() (string, error)
+	SetUsername(username string) error
+	GetPassword() (string, error)
+	SetPassword(password string) error
+	GetToken() (string, error)
+	SetToken(token string) error
+}
+
 // authenticator
 type authenticator struct {
-	config        config.Config
+	config        Config
 	cipher        Cipher
 	tokenOperator TokenOperator
 }
