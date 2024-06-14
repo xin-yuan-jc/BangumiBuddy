@@ -21,6 +21,11 @@ type RSSParser interface {
 	Parse(ctx context.Context, link string) (RSS, error)
 }
 
+// MetaParser 番剧元数据解析器
+type MetaParser interface {
+	Parse(ctx context.Context, name string) (Meta, error)
+}
+
 type subscriber struct {
 	rssParser RSSParser
 }

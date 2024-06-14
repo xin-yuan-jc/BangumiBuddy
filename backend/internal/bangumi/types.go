@@ -24,13 +24,14 @@ const (
 
 // Bangumi 番剧信息
 type Bangumi struct {
-	Name       string             // 番剧名称
-	RSSLink    string             // 番剧RSS链接
-	Status     SubscriptionStatus // 订阅状态
-	IncludeReg string             // 包含匹配，正则表达式，作用于RSS标题
-	ExcludeReg string             // 排除匹配，正则表达式，作用于RSS标题
-	TMDBID     string             // TMDB ID
-	Files      []File             // 番剧文件信息
+	Name        string             // 番剧名称
+	RSSLink     string             // 番剧RSS链接
+	Status      SubscriptionStatus // 订阅状态
+	IncludeReg  string             // 包含匹配，正则表达式，作用于RSS标题
+	ExcludeReg  string             // 排除匹配，正则表达式，作用于RSS标题
+	Files       []File             // 番剧文件信息
+	SavePattern string             // 保存格式，如果未设置则采用全局配置，若配置了则使用配置
+	Meta
 }
 
 // FileStatus 文件状态
@@ -76,4 +77,12 @@ type RSSItem struct {
 type RSS struct {
 	BangumiName string
 	Items       []RSSItem
+}
+
+// Meta 番剧元数据信息
+type Meta struct {
+	OriginName  string
+	EnglishName string
+	ChineseName string
+	Year        string
 }
