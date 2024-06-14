@@ -24,14 +24,13 @@ const (
 
 // Bangumi 番剧信息
 type Bangumi struct {
-	Name                     string             // 番剧名称
-	RSSLink                  string             // 番剧RSS链接
-	Status                   SubscriptionStatus // 订阅状态
-	IncludeReg               string             // 包含匹配，正则表达式，作用于RSS标题
-	ExcludeReg               string             // 排除匹配，正则表达式，作用于RSS标题
-	TMDBID                   string             // TMDB ID
-	Files                    []File             // 番剧文件信息
-	LinkFileCoverageStrategy CoverageStrategy   // 链接文件的覆盖策略，未设置时使用全局覆盖策略
+	Name       string             // 番剧名称
+	RSSLink    string             // 番剧RSS链接
+	Status     SubscriptionStatus // 订阅状态
+	IncludeReg string             // 包含匹配，正则表达式，作用于RSS标题
+	ExcludeReg string             // 排除匹配，正则表达式，作用于RSS标题
+	TMDBID     string             // TMDB ID
+	Files      []File             // 番剧文件信息
 }
 
 // FileStatus 文件状态
@@ -65,4 +64,16 @@ type File struct {
 	Year         string     // 年份
 	Episode      string     // 集数
 	Season       string     // 季数
+}
+
+// RSSItem RSS节点信息
+type RSSItem struct {
+	GUID        string
+	TorrentLink string
+}
+
+// RSS RSS信息
+type RSS struct {
+	BangumiName string
+	Items       []RSSItem
 }
