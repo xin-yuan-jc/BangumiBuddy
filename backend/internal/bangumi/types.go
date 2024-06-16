@@ -31,7 +31,17 @@ type Bangumi struct {
 	ExcludeReg  string             // 排除匹配，正则表达式，作用于RSS标题
 	Files       []File             // 番剧文件信息
 	SavePattern string             // 保存格式，如果未设置则采用全局配置，若配置了则使用配置
+	MoveToMedia bool               // 是否移动到媒体库
 	Meta
+}
+
+// ParseRSSRsp 解析RSS返回的番剧信息
+type ParseRSSRsp struct {
+	Name    string
+	Season  int
+	Year    string
+	TMDBID  int
+	RSSLink string
 }
 
 // FileStatus 文件状态
@@ -76,13 +86,21 @@ type RSSItem struct {
 // RSS RSS信息
 type RSS struct {
 	BangumiName string
+	Season      int
 	Items       []RSSItem
 }
 
 // Meta 番剧元数据信息
 type Meta struct {
+	MetaBase
+	Season      int
 	OriginName  string
 	EnglishName string
+}
+
+// MetaBase 番剧基础元数据信息
+type MetaBase struct {
 	ChineseName string
 	Year        string
+	TMDBID      int
 }

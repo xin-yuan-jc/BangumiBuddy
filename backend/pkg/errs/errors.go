@@ -37,6 +37,13 @@ func NewUnauthorizedf(format string, args ...interface{}) *Error {
 	}
 }
 
+func NewNotFound(message string) *Error {
+	return &Error{
+		HTTPCode: http.StatusNotFound,
+		Message:  message,
+	}
+}
+
 func ParseError(err error) (int, string) {
 	cause := errors.Cause(err)
 	if e := (&Error{}); errors.As(cause, &e) {
