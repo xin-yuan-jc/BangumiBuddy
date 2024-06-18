@@ -7,20 +7,11 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestRepo(t *testing.T) {
-	dir := "./"
-	f, err := os.CreateTemp(dir, "config-*.yaml")
-	require.Nil(t, err)
-	defer func() {
-		if err := f.Close(); err != nil {
-			t.Fatal(err)
-		}
-		if err := os.Remove(f.Name()); err != nil {
-			t.Fatal(err)
-		}
-	}()
+func TestUserRepo(t *testing.T) {
+	f, clo := newFile(t)
+	defer clo()
 
-	r, err := NewRepo(dir + f.Name())
+	r, err := NewRepo(f.Name())
 	require.Nil(t, err)
 
 	username, err := r.GetUsername()
@@ -47,15 +38,29 @@ func TestRepo(t *testing.T) {
 	require.Nil(t, err)
 	require.Equal(t, wantPassword, password)
 
-	token, err := r.GetToken()
+	token, err := r.GetUserToken()
 	require.Nil(t, err)
 	require.Empty(t, token)
 
 	wantToken := "token"
-	err = r.SetToken(wantToken)
+	err = r.SetUserToken(wantToken)
 	require.Nil(t, err)
 
-	token, err = r.GetToken()
+	token, err = r.GetUserToken()
 	require.Nil(t, err)
 	require.Equal(t, wantToken, token)
+}
+
+func newFile(t *testing.T) (*os.File, func()) {
+	dir := "./"
+	f, err := os.CreateTemp(dir, "config-*.yaml")
+	require.Nil(t, err)
+	return f, func() {
+		if err := f.Close(); err != nil {
+			t.Fatal(err)
+		}
+		if err := os.Remove(f.Name()); err != nil {
+			t.Fatal(err)
+		}
+	}
 }

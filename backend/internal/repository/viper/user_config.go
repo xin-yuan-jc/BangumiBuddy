@@ -24,11 +24,11 @@ func (r *Repo) SetPassword(password string) error {
 	return r.file.WriteConfig()
 }
 
-func (r *Repo) GetToken() (string, error) {
+func (r *Repo) GetUserToken() (string, error) {
 	return r.file.GetString("user.token"), nil
 }
 
-func (r *Repo) SetToken(token string) error {
+func (r *Repo) SetUserToken(token string) error {
 	r.file.Set("user.token", token)
 	return r.file.WriteConfig()
 }

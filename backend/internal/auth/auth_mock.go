@@ -170,9 +170,9 @@ func (mr *MockConfigMockRecorder) GetPassword() *gomock.Call {
 }
 
 // GetToken mocks base method.
-func (m *MockConfig) GetToken() (string, error) {
+func (m *MockConfig) GetUserToken() (string, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetToken")
+	ret := m.ctrl.Call(m, "GetUserToken")
 	ret0, _ := ret[0].(string)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
@@ -181,7 +181,7 @@ func (m *MockConfig) GetToken() (string, error) {
 // GetToken indicates an expected call of GetToken.
 func (mr *MockConfigMockRecorder) GetToken() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetToken", reflect.TypeOf((*MockConfig)(nil).GetToken))
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetUserToken", reflect.TypeOf((*MockConfig)(nil).GetUserToken))
 }
 
 // GetUsername mocks base method.
@@ -214,9 +214,9 @@ func (mr *MockConfigMockRecorder) SetPassword(password interface{}) *gomock.Call
 }
 
 // SetToken mocks base method.
-func (m *MockConfig) SetToken(token string) error {
+func (m *MockConfig) SetUserToken(token string) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "SetToken", token)
+	ret := m.ctrl.Call(m, "SetUserToken", token)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
@@ -224,7 +224,7 @@ func (m *MockConfig) SetToken(token string) error {
 // SetToken indicates an expected call of SetToken.
 func (mr *MockConfigMockRecorder) SetToken(token interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SetToken", reflect.TypeOf((*MockConfig)(nil).SetToken), token)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SetUserToken", reflect.TypeOf((*MockConfig)(nil).SetUserToken), token)
 }
 
 // SetUsername mocks base method.

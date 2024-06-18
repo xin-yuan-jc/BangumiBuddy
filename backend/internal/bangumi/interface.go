@@ -4,6 +4,8 @@ import (
 	"context"
 )
 
+//go:generate mockgen -destination interface_mock.go -source $GOFILE -package $GOPACKAGE
+
 // Subscriber 番剧订阅器
 type Subscriber interface {
 	// ParseRSS 解析RSS链接，获取番剧的基本信息，供用户确认

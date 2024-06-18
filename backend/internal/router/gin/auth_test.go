@@ -32,7 +32,7 @@ func TestAuth_CheckToken(t *testing.T) {
 	initArgs := func() args {
 		w := httptest.NewRecorder()
 		c, _ := gin.CreateTestContext(w)
-		c.Request, _ = http.NewRequest("POST", "", nil)
+		c.Request, _ = http.NewRequest(http.MethodPost, "", nil)
 		c.Request.Header.Set("Authorization", "Bearer token")
 		return args{
 			ctx:    c,
@@ -83,7 +83,7 @@ func TestAuth_Token(t *testing.T) {
 	initArgs := func(body string) args {
 		w := httptest.NewRecorder()
 		c, _ := gin.CreateTestContext(w)
-		c.Request, _ = http.NewRequest("POST", "/token", bytes.NewBufferString(body))
+		c.Request, _ = http.NewRequest(http.MethodPost, "/token", bytes.NewBufferString(body))
 		c.Request.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 		return args{
 			ctx:    c,
@@ -187,7 +187,7 @@ func TestAuth_UpdateUser(t *testing.T) {
 		w := httptest.NewRecorder()
 		c, _ := gin.CreateTestContext(w)
 		body := `{"username": "user", "password": "pass"}`
-		c.Request, _ = http.NewRequest("PUT", "/user", bytes.NewBufferString(body))
+		c.Request, _ = http.NewRequest(http.MethodPut, "/user", bytes.NewBufferString(body))
 		return args{
 			ctx:    c,
 			writer: w,

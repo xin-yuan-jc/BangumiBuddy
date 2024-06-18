@@ -52,8 +52,8 @@ type Config interface {
 	SetUsername(username string) error
 	GetPassword() (string, error)
 	SetPassword(password string) error
-	GetToken() (string, error)
-	SetToken(token string) error
+	GetUserToken() (string, error)
+	SetUserToken(token string) error
 }
 
 // authenticator
@@ -114,10 +114,10 @@ func (a *authenticator) getPassword() string {
 }
 
 func (a *authenticator) getKey() string {
-	token, _ := a.config.GetToken()
+	token, _ := a.config.GetUserToken()
 	if token == "" {
 		token, _ = a.cipher.GenerateKey(context.Background())
-		_ = a.config.SetToken(token)
+		_ = a.config.SetUserToken(token)
 	}
 	return token
 }

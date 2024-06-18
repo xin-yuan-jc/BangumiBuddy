@@ -2,9 +2,9 @@ package main
 
 import (
 	"context"
-	"net/http"
 	"os"
 
+	tmdbclient "github.com/cyruzin/golang-tmdb"
 	"github.com/gin-gonic/gin"
 	sqlitedriver "github.com/glebarez/sqlite"
 	"go.uber.org/zap/zapcore"
@@ -13,6 +13,9 @@ import (
 	"github.com/MangataL/BangumiBuddy/internal/auth"
 	"github.com/MangataL/BangumiBuddy/internal/auth/crypto/pbkdf2"
 	"github.com/MangataL/BangumiBuddy/internal/auth/token/jwt"
+	"github.com/MangataL/BangumiBuddy/internal/bangumi"
+	"github.com/MangataL/BangumiBuddy/internal/bangumi/parser/meta/tmdb"
+	"github.com/MangataL/BangumiBuddy/internal/bangumi/parser/rss/mikan"
 	"github.com/MangataL/BangumiBuddy/internal/repository/viper"
 	ginrouter "github.com/MangataL/BangumiBuddy/internal/router/gin"
 	"github.com/MangataL/BangumiBuddy/pkg/log"
@@ -54,9 +57,19 @@ func main() {
 	r.POST("/apis/v1/token", authRouter.Token)
 	apisRouter := r.Group("/apis/v1", authRouter.CheckToken)
 	apisRouter.PUT("/user", authRouter.UpdateUser)
-	r.NoRoute(authRouter.CheckToken, func(c *gin.Context) {
-		c.HTML(http.StatusOK, "index.html", nil)
+
+	tmdbAPIToken, _ := conf.GetAPIToken()
+	tmdbClient, err := tmdbclient.InitV4(tmdbAPIToken)
+	if err != nil {
+		log.Fatalf(ctx, "init tmdb client failed %s", err)
+	}
+	tmdbParser := tmdb.NewParser(tmdbClient)
+	subscriber := bangumi.NewSubscriber(bangumi.SubscriberDep{
+		RSSParser:  mikan.NewParser(),
+		MetaParser: tmdbParser,
 	})
+	subscriberRouter := ginrouter.NewSubscriber(subscriber)
+	apisRouter.GET("/bangumi/rss", subscriberRouter.ParseRSS)
 	if err := r.Run("[::]:6937"); err != nil {
 		log.Fatalf(ctx, "run server failed %s", err)
 	}

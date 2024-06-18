@@ -7,15 +7,15 @@ import (
 //go:generate mockgen -destination subscriber_mock.go -source $GOFILE -package $GOPACKAGE
 
 // NewSubscriber 创建番剧订阅器
-func NewSubscriber(dep Dependency) Subscriber {
+func NewSubscriber(dep SubscriberDep) Subscriber {
 	return &subscriber{
 		rssParser:  dep.RSSParser,
 		metaParser: dep.MetaParser,
 	}
 }
 
-// Dependency subscriber初始化依赖
-type Dependency struct {
+// SubscriberDep subscriber初始化依赖
+type SubscriberDep struct {
 	RSSParser
 	MetaParser
 }
