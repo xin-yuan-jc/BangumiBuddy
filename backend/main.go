@@ -64,7 +64,7 @@ func main() {
 		log.Fatalf(ctx, "init tmdb client failed %s", err)
 	}
 	tmdbParser := tmdb.NewParser(tmdbClient)
-	subscriber := bangumi.NewSubscriber(bangumi.SubscriberDep{
+	subscriber := bangumi.MustNewSubscriber(bangumi.SubscriberDep{
 		RSSParser:  mikan.NewParser(),
 		MetaParser: tmdbParser,
 	})

@@ -24,14 +24,11 @@ const (
 
 // Bangumi 番剧信息
 type Bangumi struct {
-	Name        string             // 番剧名称
-	RSSLink     string             // 番剧RSS链接
-	Status      SubscriptionStatus // 订阅状态
-	IncludeReg  string             // 包含匹配，正则表达式，作用于RSS标题
-	ExcludeReg  string             // 排除匹配，正则表达式，作用于RSS标题
-	Files       []File             // 番剧文件信息
-	SavePattern string             // 保存格式，如果未设置则采用全局配置，若配置了则使用配置
-	MoveToMedia bool               // 是否移动到媒体库
+	Name       string             // 番剧名称
+	RSSLink    string             // 番剧RSS链接
+	Status     SubscriptionStatus // 订阅状态
+	IncludeReg string             // 包含匹配，正则表达式，作用于RSS标题
+	ExcludeReg string             // 排除匹配，正则表达式，作用于RSS标题
 	Meta
 }
 
@@ -70,11 +67,7 @@ type File struct {
 	StatusDetail string     // 文件状态详情，一般用于存储错误信息
 	VideoPath    string     // 链接路径
 	RSSTitle     string     // RSS订阅文件中的标题名
-	OriginName   string     // 原始种子中的番剧名称
-	BangumiName  string     // 解析后的番剧中文名称
-	Year         string     // 年份
 	Episode      string     // 集数
-	Season       string     // 季数
 }
 
 // RSSItem RSS节点信息
@@ -103,4 +96,24 @@ type MetaBase struct {
 	ChineseName string
 	Year        string
 	TMDBID      int
+}
+
+// SubscribeReq 订阅请求
+type SubscribeReq struct {
+	Name       string // 番剧名
+	RSSLink    string // RSS链接
+	Season     int    // 季数
+	IncludeReg string // 包含匹配，正则表达式，作用于RSS标题
+	ExcludeReg string // 排除匹配，正则表达式，作用于RSS标题
+	TMDBID     int    // TMDB ID
+}
+
+// ListBangumiReq 查询番剧请求
+type ListBangumiReq struct {
+}
+
+// DownloadReq 下载请求
+type DownloadReq struct {
+	TorrentLink string
+	SavePath    string
 }

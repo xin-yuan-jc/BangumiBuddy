@@ -53,7 +53,7 @@ func TestSubscriber_Parse(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			dep, clo := tc.fake(t)
 			defer clo()
-			s := NewSubscriber(dep)
+			s := newSubscriber(dep)
 
 			got, err := s.ParseRSS(context.Background(), tc.link)
 			t.Log(err)
@@ -61,5 +61,13 @@ func TestSubscriber_Parse(t *testing.T) {
 			assert.Equal(t, tc.wantErr, err != nil)
 			assert.Equal(t, tc.want, got)
 		})
+	}
+}
+
+func newSubscriber(dep SubscriberDep) *subscriber {
+	return &subscriber{
+		rssParser:  dep.RSSParser,
+		metaParser: dep.MetaParser,
+		repo:       dep.Repository,
 	}
 }

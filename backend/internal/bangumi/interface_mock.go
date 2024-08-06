@@ -50,15 +50,15 @@ func (mr *MockSubscriberMockRecorder) ParseRSS(ctx, rssLink interface{}) *gomock
 }
 
 // Subscribe mocks base method.
-func (m *MockSubscriber) Subscribe(ctx context.Context, bangumi Bangumi) error {
+func (m *MockSubscriber) Subscribe(ctx context.Context, req SubscribeReq) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Subscribe", ctx, bangumi)
+	ret := m.ctrl.Call(m, "Subscribe", ctx, req)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // Subscribe indicates an expected call of Subscribe.
-func (mr *MockSubscriberMockRecorder) Subscribe(ctx, bangumi interface{}) *gomock.Call {
+func (mr *MockSubscriberMockRecorder) Subscribe(ctx, req interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Subscribe", reflect.TypeOf((*MockSubscriber)(nil).Subscribe), ctx, bangumi)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Subscribe", reflect.TypeOf((*MockSubscriber)(nil).Subscribe), ctx, req)
 }
